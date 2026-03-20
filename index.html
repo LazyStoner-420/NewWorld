@@ -1568,7 +1568,7 @@ async function sendQuote(quoteData) {
 // Attach to your estimator button
 // IMPORTANT: Replace '#quote-submit' with your actual button ID
 window.addEventListener("DOMContentLoaded", () => {
-  const btn = document.querySelector('#quote-submit');
+  const btn = document.querySelector('.qs-btn-primary');
   if (!btn) {
     console.warn("Quote button not found. Update selector.");
     return;
@@ -1581,6 +1581,73 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 </script>
+<script>
+// Collect estimator data
+function collectEstimatorData() {
+  return {
+    name: document.querySelector('#name')?.value || "Quote Request",
+    email: document.querySelector('#email')?.value || "",
+    phone: document.querySelector('#phone')?.value || "",
+    city: document.querySelector('#city')?.value || "",
+    address: document.querySelector('#address')?.value || "",
 
+    services: window.selectedServices || [],
+    lotSize: document.querySelector('#lotSize')?.value || "",
+    frequency: window.selectedFrequency || "",
+    total: window.calculatedTotal || 0
+  };
+}
+
+// Send quote to backend
+async function sendQuote(quoteData) {
+  try {
+    const res = await fetch("/.netlify/functions/lead", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: quoteData.name,
+        email: quoteData.email,
+        phone: quoteData.phone,
+        city: quoteData.city,
+        address: quoteData.address,
+        services: quoteData.services.join(", "),
+        lot_size: quoteData.lotSize,
+        start: quoteData.frequency,
+        notes: `Estimate: $${quoteData.total}`,
+        source: "Quote Estimator",
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    const data = await res.json();
+    alert("Quote sent successfully!");
+    console.log("SUCCESS:", data);
+
+  } catch (err) {
+    console.error("ERROR:", err);
+    alert("Failed to send quote.");
+  }
+}
+
+// Attach to button
+window.addEventListener("DOMContentLoaded", () => {
+
+  // ⚠️ CHANGE THIS SELECTOR
+  const btn = document.querySelector('#quote-submit');
+
+  if (!btn) {
+    console.warn("Quote button not found — update selector.");
+    return;
+  }
+
+  btn.addEventListener('click', () => {
+    const data = collectEstimatorData();
+    sendQuote(data);
+  });
+
+});
+</script>
 </body>
 </html>
