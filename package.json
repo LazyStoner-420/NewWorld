@@ -1,0 +1,8 @@
+{
+  "name": "new-world-lawn-care",
+  "version": "1.0.0",
+  "description": "New World Lawn Care — Kingston, ON",
+  "engines": {
+    "node": ">=18"
+  }
+}
