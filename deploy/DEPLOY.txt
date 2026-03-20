@@ -1,0 +1,101 @@
+════════════════════════════════════════════════════════════
+  NEW WORLD LAWN CARE — NETLIFY DEPLOYMENT GUIDE
+════════════════════════════════════════════════════════════
+
+FOLDER STRUCTURE (deploy everything inside this folder)
+────────────────────────────────────────────────────────
+  index.html                        ← The full website
+  netlify.toml                      ← Netlify config (auto-detected)
+  package.json
+  netlify/
+    functions/
+      lead.js                       ← Saves lead to CSV + emails owner
+      track.js                      ← Logs page visits
+      leads-export.js               ← Download your leads CSV
+
+
+STEP 1 — Edit 2 lines in netlify/functions/lead.js
+────────────────────────────────────────────────────────
+Open the file and fill in:
+
+  const OWNER_EMAIL = "OWNER_EMAIL_HERE";
+                       ↑ The owner's real email (where leads get sent)
+
+  const FROM_EMAIL  = "SENDGRID_VERIFIED_SENDER_HERE";
+                       ↑ Your verified SendGrid sender email
+
+
+STEP 2 — Create a free SendGrid account
+────────────────────────────────────────────────────────
+  1. Go to https://sendgrid.com → sign up free
+  2. Go to Settings → Sender Authentication → verify your FROM_EMAIL
+  3. Go to Settings → API Keys → Create API Key
+     Name: "New World Lawn Care"
+     Access: Mail Send → Full Access
+  4. Copy the API key (you won't see it again)
+
+
+STEP 3 — Deploy to Netlify
+────────────────────────────────────────────────────────
+  Option A — Drag & Drop (easiest, no account setup needed):
+    1. Go to https://app.netlify.com
+    2. Click "Add new site" → "Deploy manually"
+    3. Drag the entire folder onto the upload area
+    4. Done — your site gets a free .netlify.app URL
+
+  Option B — GitHub (recommended for ongoing updates):
+    1. Create a repo at https://github.com and push this folder
+    2. In Netlify: Add new site → Import from Git → select repo
+    3. Build settings are auto-read from netlify.toml
+
+
+STEP 4 — Set Environment Variables in Netlify
+────────────────────────────────────────────────────────
+  In Netlify dashboard:
+  Site Settings → Environment Variables → Add variable
+
+  Variable name        Value
+  ────────────────     ──────────────────────────────────
+  SENDGRID_API_KEY     (paste from Step 2)
+  EXPORT_KEY           (make up a strong secret, e.g. nwlc-2026-abc123)
+
+  After adding variables, go to Deploys → Trigger deploy
+
+
+STEP 5 — Test it
+────────────────────────────────────────────────────────
+  1. Visit your site and submit the contact form
+  2. Check the owner email inbox for the lead notification
+  3. Download your leads CSV at:
+     https://YOUR-SITE.netlify.app/.netlify/functions/leads-export?key=YOUR_EXPORT_KEY
+
+
+────────────────────────────────────────────────────────
+HOW LEADS ARE SAVED
+────────────────────────────────────────────────────────
+  When someone submits the contact form:
+
+  1. Form data POSTs to /.netlify/functions/lead
+  2. Lead is appended to /tmp/leads.csv on the server
+  3. Email notification sent to OWNER_EMAIL via SendGrid
+     → Reply-To is set to the customer's email
+     → Owner can reply directly from their inbox
+  4. Customer sees "Message Received" confirmation
+
+  ⚠️  Important: /tmp storage resets when Netlify recycles
+  the function container (every few days). The EMAIL is your
+  permanent record — make sure OWNER_EMAIL is correct before
+  going live. The CSV download is a bonus for recent leads.
+
+  For permanent CSV storage, ask your developer to upgrade
+  to Netlify Blobs (free, built-in persistent storage).
+
+
+────────────────────────────────────────────────────────
+CUSTOM DOMAIN (optional)
+────────────────────────────────────────────────────────
+  In Netlify: Domain Management → Add custom domain
+  Follow the DNS instructions to point your domain to Netlify.
+  Free SSL certificate is included automatically.
+
+════════════════════════════════════════════════════════════
